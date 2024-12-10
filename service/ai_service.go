@@ -2,12 +2,12 @@ package service
 
 import (
 	"a21hc3NpZ25tZW50/model"
-	"net/http"
 	"bytes"
 	"encoding/json"
 	"errors"
+	// "fmt"
 	"io"
-	
+	"net/http"
 )
 
 type HTTPClient interface {
@@ -21,23 +21,25 @@ type AIService struct {
 
 
 func (s *AIService) AnalyzeData(table map[string][]string, query, token string) (string, error) {
+
 	if len(table) == 0 {
 		return "", errors.New("table is empty")
 	}
 
 	inputs := model.AIRequest{
 		Inputs: model.Inputs{
-			Table: table,
 			Query: query,
+			Table: table,
 		},
 	}
 
+	
 	payload, err := json.Marshal(inputs)
 	if err != nil {
 		return "", err
 	}
 
-	req, err := http.NewRequest("POST", "http://api.example.com/analyze", bytes.NewBuffer(payload))
+	req, err := http.NewRequest("POST", "https://api-inference.huggingface.co/models/google/tapas-large-finetuned-wtq", bytes.NewBuffer(payload))
 	if err != nil {
 		return "", err
 	}
@@ -84,7 +86,7 @@ func (s *AIService) ChatWithAI(context, query, token string) (model.ChatResponse
 		return model.ChatResponse{}, err
 	}
 
-	req, err := http.NewRequest("POST", "http://api.example.com/chat", bytes.NewBuffer(payloadBytes))
+	req, err := http.NewRequest("POST", "http://localhost:3000/chat", bytes.NewBuffer(payloadBytes))
 	if err != nil {
 		return model.ChatResponse{}, err
 	}

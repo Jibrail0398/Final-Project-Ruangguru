@@ -17,5 +17,5 @@ type TapasResponse struct {
 }
 
 type ChatResponse struct {
-	GeneratedText string `json:"generated_text"`
+	GeneratedText []string `json:"generated_text"`
 }

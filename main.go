@@ -1,14 +1,14 @@
 package main
 
 import (
+	
+	"a21hc3NpZ25tZW50/service"
+	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 	"os"
-	"io"
-	"a21hc3NpZ25tZW50/service"
-	"encoding/json"
 	"github.com/gorilla/mux"
-	"github.com/gorilla/sessions"
 	"github.com/joho/godotenv"
 	"github.com/rs/cors"
 )
@@ -16,12 +16,6 @@ import (
 // Initialize the services
 var fileService = &service.FileService{}
 var aiService = &service.AIService{Client: &http.Client{}}
-var store = sessions.NewCookieStore([]byte("my-key"))
-
-func getSession(r *http.Request) *sessions.Session {
-	session, _ := store.Get(r, "chat-session")
-	return session
-}
 
 func main() {
 	// Load the .env file
@@ -31,7 +25,7 @@ func main() {
 	}
 
 	// Retrieve the Hugging Face token from the environment variables
-	token := os.Getenv("HUGGINGFACE_TOKEN")
+	token := os.Getenv("myAI_Token")
 	if token == "" {
 		log.Fatal("HUGGINGFACE_TOKEN is not set in the .env file")
 	}
@@ -39,9 +33,9 @@ func main() {
 	// Set up the router
 	router := mux.NewRouter()
 
-	// File upload endpoint
-	router.HandleFunc("/upload", func(w http.ResponseWriter, r *http.Request) {
-		err := r.ParseMultipartForm(10 << 20) // Limit file size to 10MB
+	// File analyze endpoint
+	router.HandleFunc("/analyze", func(w http.ResponseWriter, r *http.Request) {
+		err := r.ParseMultipartForm(1024) 
 		if err != nil {
 			http.Error(w, "Unable to parse form", http.StatusBadRequest)
 			return
@@ -49,7 +43,7 @@ func main() {
 
 		file, _, err := r.FormFile("file")
 		if err != nil {
-			http.Error(w, "Unable to read file", http.StatusBadRequest)
+			http.Error(w, "Failed to read file", http.StatusBadRequest)
 			return
 		}
 		defer file.Close()
@@ -60,15 +54,20 @@ func main() {
 			return
 		}
 
-		fileService := service.FileService{}
-		result, err := fileService.ProcessFile(string(content))
+		resultFile, err := fileService.ProcessFile(string(content))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
+		question := "Give me how many Energy Consumption each appliance!"
+		tapasRequest,errTapasRequest := aiService.AnalyzeData(resultFile,question,token)
+		if errTapasRequest!=nil{
+			http.Error(w,errTapasRequest.Error(),500)
+		}
+
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(result)
+		json.NewEncoder(w).Encode(tapasRequest)
 	}).Methods("POST")
 
 	// Chat endpoint

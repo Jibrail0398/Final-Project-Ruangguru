@@ -13,32 +13,38 @@ type FileService struct {
 
 
 func (s *FileService) ProcessFile(fileContent string) (map[string][]string, error) {
+
+	// Jika konten file (fileContent) hanya berisi spasi (atau kosong sepenuhnya), maka fungsi akan mengembalikan error dengan pesan "file content is empty".
 	if strings.TrimSpace(fileContent) == "" {
 		return nil, errors.New("file content is empty")
 	}
 
+	//Membaca file csv
 	reader := csv.NewReader(strings.NewReader(fileContent))
 	rows, err := reader.ReadAll()
 	if err != nil {
 		return nil, errors.New("failed to parse CSV")
 	}
 
+	//Jika csv tidak memiliki data, Karena pada csv baris pertama adalah judul
 	if len(rows) < 2 {
 		return nil, errors.New("invalid CSV format")
 	}
 
-	headers := rows[0]
-	data := make(map[string][]string)
-	for _, header := range headers {
+	headers := rows[0] //Mengambil header
+	data := make(map[string][]string) //Membuat map kosong
+	for _, header := range headers { //// Inisialisasi slice kosong untuk setiap header
 		data[header] = []string{}
 	}
 
-	for _, row := range rows[1:] {
-		if len(row) != len(headers) {
+	// Tambahkan data dari baris berikutnya
+	for _, row := range rows[1:] { /// Iterasi dari baris kedua hingga akhir
+		if len(row) != len(headers) { //Jika jumlah kolom tidak cocok, itu menandakan file CSV rusak atau tidak valid.
 			return nil, errors.New("row length does not match headers")
 		}
-		for i, value := range row {
-			data[headers[i]] = append(data[headers[i]], value)
+		//Menambahkan elemen pada setiap key dari map berdasarkan header
+		for index, value := range row {
+			data[headers[index]] = append(data[headers[index]], value)
 		}
 	}
 
