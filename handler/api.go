@@ -31,6 +31,7 @@ func AnalyzeHandler(w http.ResponseWriter, r *http.Request) {
 
 	var fileService = &service.FileService{}
 	var aiService = &service.AIService{Client: &http.Client{}}
+	
 	err := r.ParseMultipartForm(1024)
 	if err != nil {
 		http.Error(w, "Unable to parse form", http.StatusBadRequest)
