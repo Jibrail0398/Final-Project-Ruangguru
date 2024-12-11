@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	// "fmt"
 	"io"
 	"net/http"
 )
@@ -19,8 +18,8 @@ type AIService struct {
 }
 
 
-
 func (s *AIService) AnalyzeData(table map[string][]string, query, token string) (string, error) {
+	
 
 	if len(table) == 0 {
 		return "", errors.New("table is empty")
@@ -33,7 +32,6 @@ func (s *AIService) AnalyzeData(table map[string][]string, query, token string) 
 		},
 	}
 
-	
 	payload, err := json.Marshal(inputs)
 	if err != nil {
 		return "", err
@@ -75,18 +73,27 @@ func (s *AIService) AnalyzeData(table map[string][]string, query, token string) 
 	return response.Cells[0], nil
 }
 
-func (s *AIService) ChatWithAI(context, query, token string) (model.ChatResponse, error) {
-	payload := map[string]string{
-		"context": context,
-		"query":   query,
+func (s *AIService) ChatWithAI( query, token string) (model.ChatResponse, error) {
+
+	payload := model.ChatAIRequest{
+		Messages: []model.MessagesAIRequest{},
+		MaxTokens: 500,
 	}
+
+	payload.Messages = append(payload.Messages,model.MessagesAIRequest{
+		Role: "user",
+		Content: query,
+	})
+
 
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
 		return model.ChatResponse{}, err
 	}
 
-	req, err := http.NewRequest("POST", "http://localhost:3000/chat", bytes.NewBuffer(payloadBytes))
+	url := "https://api-inference.huggingface.co/models/Qwen/Qwen2.5-Coder-32B-Instruct/v1/chat/completions"
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
 	if err != nil {
 		return model.ChatResponse{}, err
 	}
@@ -98,6 +105,7 @@ func (s *AIService) ChatWithAI(context, query, token string) (model.ChatResponse
 	if err != nil {
 		return model.ChatResponse{}, err
 	}
+	
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
@@ -109,11 +117,18 @@ func (s *AIService) ChatWithAI(context, query, token string) (model.ChatResponse
 		return model.ChatResponse{}, err
 	}
 
-	var chatResponses []model.ChatResponse
-	err = json.Unmarshal(body, &chatResponses)
-	if err != nil || len(chatResponses) == 0 {
-		return model.ChatResponse{}, errors.New("invalid response from AI")
+	var chatapiResponse model.ChatAPIResponse
+
+	err = json.Unmarshal([]byte(body), &chatapiResponse)
+	if err != nil {
+		return model.ChatResponse{},errors.New("failed Parsing Response")
 	}
 
-	return chatResponses[0], nil
+	var chatResponses model.ChatResponse
+	for _,choice := range chatapiResponse.Choices{
+		chatResponses.GeneratedText = append(chatResponses.GeneratedText, choice.Message.Content)
+	}
+
+	
+	return chatResponses, nil
 }

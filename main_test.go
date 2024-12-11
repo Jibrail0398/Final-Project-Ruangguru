@@ -130,11 +130,11 @@ var _ = Describe("AIService", func() {
 				}, nil
 			}
 
-			context := "context"
+			
 			query := "query"
 			token := "token"
 
-			result, err := aiService.ChatWithAI(context, query, token)
+			result, err := aiService.ChatWithAI( query, token)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(result.GeneratedText).To(Equal("response"))
 		})
@@ -147,11 +147,11 @@ var _ = Describe("AIService", func() {
 				}, nil
 			}
 
-			context := "context"
+			
 			query := "query"
 			token := "token"
 
-			result, err := aiService.ChatWithAI(context, query, token)
+			result, err := aiService.ChatWithAI(query, token)
 			Expect(err).To(HaveOccurred())
 			Expect(result.GeneratedText).To(BeEmpty())
 		})

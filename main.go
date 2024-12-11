@@ -1,7 +1,6 @@
 package main
 
 import (
-	
 	"a21hc3NpZ25tZW50/service"
 	"encoding/json"
 	"io"
@@ -35,6 +34,7 @@ func main() {
 
 	// File analyze endpoint
 	router.HandleFunc("/analyze", func(w http.ResponseWriter, r *http.Request) {
+
 		err := r.ParseMultipartForm(1024) 
 		if err != nil {
 			http.Error(w, "Unable to parse form", http.StatusBadRequest)
@@ -59,8 +59,10 @@ func main() {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+		
+		question  := r.FormValue("query")
 
-		question := "Give me how many Energy Consumption each appliance!"
+
 		tapasRequest,errTapasRequest := aiService.AnalyzeData(resultFile,question,token)
 		if errTapasRequest!=nil{
 			http.Error(w,errTapasRequest.Error(),500)
@@ -72,19 +74,21 @@ func main() {
 
 	// Chat endpoint
 	router.HandleFunc("/chat", func(w http.ResponseWriter, r *http.Request) {
+		
 		var requestBody struct {
-			Context string `json:"context"`
 			Query   string `json:"query"`
-			Token   string `json:"token"`
 		}
+
 		err := json.NewDecoder(r.Body).Decode(&requestBody)
+
 		if err != nil {
 			http.Error(w, "Invalid request body", http.StatusBadRequest)
 			return
 		}
 	
 		aiService := service.AIService{Client: &http.Client{}}
-		response, err := aiService.ChatWithAI(requestBody.Context, requestBody.Query, requestBody.Token)
+
+		response, err := aiService.ChatWithAI( requestBody.Query, token)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -92,7 +96,10 @@ func main() {
 	
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(response)
+		
 	}).Methods("POST")
+
+
 
 	// Enable CORS
 	corsHandler := cors.New(cors.Options{

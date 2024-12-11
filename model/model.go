@@ -19,3 +19,21 @@ type TapasResponse struct {
 type ChatResponse struct {
 	GeneratedText []string `json:"generated_text"`
 }
+
+type ChatAPIResponse struct {
+	Choices []struct {
+		Message struct {
+			Content string `json:"content"`
+		} `json:"message"`
+	} `json:"choices"`
+}
+
+type MessagesAIRequest struct{
+	Role string `json:"role"`
+	Content string `json:"content"`
+}
+
+type ChatAIRequest struct{
+	Messages []MessagesAIRequest `json:"messages"`
+	MaxTokens int `json:"max_tokens"`
+}
