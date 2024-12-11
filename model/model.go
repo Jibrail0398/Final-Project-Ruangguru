@@ -37,3 +37,12 @@ type ChatAIRequest struct{
 	Messages []MessagesAIRequest `json:"messages"`
 	MaxTokens int `json:"max_tokens"`
 }
+
+type Credential struct {
+	Host         string
+	Username     string
+	Password     string
+	DatabaseName string
+	Port         int
+	
+}
