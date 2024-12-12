@@ -64,10 +64,10 @@ func main() {
 	router.HandleFunc("/login",apiHandler.LoginHandler).Methods("POST")
 
 	// File analyze endpoint
-	router.HandleFunc("/analyze", handler.AnalyzeHandler).Methods("POST")
+	router.HandleFunc("/analyze", handler.AuthMiddleware(handler.AnalyzeHandler) ).Methods("POST")
 
 	// Chat endpoint
-	router.HandleFunc("/chat", handler.ChatHandler).Methods("POST")
+	router.HandleFunc("/chat", handler.AuthMiddleware(handler.ChatHandler)).Methods("POST")
 
 
 	// Enable CORS
