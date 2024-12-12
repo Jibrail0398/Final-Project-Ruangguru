@@ -3,7 +3,9 @@ package handler
 import (
 	"a21hc3NpZ25tZW50/model"
 	"a21hc3NpZ25tZW50/service"
+	
 	"encoding/json"
+	
 	"io"
 	"log"
 	"net/http"
@@ -36,7 +38,6 @@ func getSecretKey() string {
 		log.Fatal("Error loading .env file")
 	}
 	key := os.Getenv("secret_key")
-	log.Println(key)
 	return key
 }
 
@@ -72,14 +73,19 @@ func AnalyzeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	
+	
 	question := r.FormValue("query")
-
+	
 	tapasRequest, errTapasRequest := aiService.AnalyzeData(resultFile, question, token)
 	if errTapasRequest != nil {
 		http.Error(w, errTapasRequest.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	// dateFile := resultFile["Date"][0]
+
+	
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(tapasRequest)
 }
@@ -87,20 +93,54 @@ func AnalyzeHandler(w http.ResponseWriter, r *http.Request) {
 func ChatHandler(w http.ResponseWriter, r *http.Request) {
 
 	token := getTokenHuggingFace()
+	
+	// var requestBody struct {
+		// 	Query string `json:"query"`
+		// }
 
-	var requestBody struct {
-		Query string `json:"query"`
-	}
+	// err := json.NewDecoder(r.Body).Decode(&requestBody)
+	// if err != nil {
+		// 	http.Error(w, "Invalid request body", http.StatusBadRequest)
+	// 	return
+	// }
 
-	err := json.NewDecoder(r.Body).Decode(&requestBody)
+	aiService := service.AIService{Client: &http.Client{}}
+	
+	
+	//Baca file (nyoba code, kalau mau dihapus,hapus dari sini)
+	var fileService = &service.FileService{}
+	err := r.ParseMultipartForm(1024)
 	if err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		http.Error(w, "Unable to parse form", http.StatusBadRequest)
 		return
 	}
 
-	aiService := service.AIService{Client: &http.Client{}}
+	file, _, err := r.FormFile("file")
+	if err != nil {
+		http.Error(w, "Failed to read file", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
 
-	response, err := aiService.ChatWithAI(requestBody.Query, token)
+	content, err := io.ReadAll(file)
+	if err != nil {
+		http.Error(w, "Unable to read file content", http.StatusInternalServerError)
+		return
+	}
+
+	resultFile, err := fileService.ProcessFile(string(content))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	question := r.FormValue("query")
+	resultJson,_:=json.Marshal(resultFile)
+	
+	resultstring := string(resultJson) + "Bacalah format file tersebut! dan jawablah pertanyaan ini berdasarkan file tersebut, jika pertanyaan diluar konteks, maka berikan respon 'pertanyaan diluar konteks dokumen'. Berikut ini pertanyaannya:" + question
+
+	//
+	
+	response, err := aiService.ChatWithAI(resultstring, token)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -183,7 +223,7 @@ func (h *APIHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Panggil fungsi Register dari UserService
+	// Panggil fungsi Login dari UserService
 	user, err := h.UserService.Login(dataLogin.Email, dataLogin.Password)
 	if err != nil {
 		w.WriteHeader(400)
@@ -199,6 +239,7 @@ func (h *APIHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := model.LoginResponse{
+		Id: user.ID,
 		Username: user.Username,
 		Email:    user.Email,
 		Token:    "Bearer " + tokenjwt,

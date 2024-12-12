@@ -57,7 +57,7 @@ func validateDateFormat(dates []string) error {
     return nil
 }
 
-func (s *FileService) ProcessFile(fileContent string) (map[string][]string, error) {
+func (s *FileService) ProcessFile(fileContent string) (map[string][]string , error) {
 
     // Jika konten file (fileContent) hanya berisi spasi (atau kosong sepenuhnya), maka fungsi akan mengembalikan error dengan pesan "file content is empty".
     if strings.TrimSpace(fileContent) == "" {

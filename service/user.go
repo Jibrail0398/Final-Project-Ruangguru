@@ -47,4 +47,4 @@ func(s *userService) Login(email string,password string)(model.UserByEmail,error
 	}
 	return user,nil
 }
-
+//

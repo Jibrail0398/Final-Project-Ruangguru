@@ -1,5 +1,9 @@
 package model
 
+import(
+	"time"
+)
+
 type Inputs struct {
 	Table map[string][]string `json:"table"`
 	Query string              `json:"query"`
@@ -48,6 +52,7 @@ type Credential struct {
 }
 
 type UserByEmail struct{
+	ID string
 	Username	string
 	Email	string
 	Password string
@@ -65,7 +70,13 @@ type Login struct{
 }
 
 type LoginResponse struct{
+	Id string `json:"id"`
 	Username	string `json:"username"`
 	Email	string `json:"email"`
 	Token string `json:"token"`
+}
+
+type Report struct{
+	Id int `json:"id"`
+	date time.Time `json:"date"`
 }

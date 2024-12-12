@@ -20,7 +20,6 @@ type AIService struct {
 
 func (s *AIService) AnalyzeData(table map[string][]string, query, token string) (string, error) {
 	
-
 	if len(table) == 0 {
 		return "", errors.New("table is empty")
 	}

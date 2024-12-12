@@ -51,6 +51,7 @@ func(p*postgres)Migrate()error{
         `CREATE TABLE IF NOT EXISTS report (
 		id SERIAL PRIMARY KEY,
         date DATE NOT NULL UNIQUE,
+        stringText TEXT NOT NULL,
 		fk_id_user INTEGER NOT NULL,
 		FOREIGN KEY (fk_id_user) REFERENCES users(id))
 		`)

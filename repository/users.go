@@ -48,13 +48,13 @@ func (u *userRepository) Register(username string, email string, password string
 
 func (u *userRepository) GetUserByEmail(email string)(model.UserByEmail,error){
 	query :=`
-		SELECT username,email,password FROM users WHERE email = $1
+		SELECT id,username,email,password FROM users WHERE email = $1
 	`
 	row := u.db.QueryRow(query,email)
 
 	var user model.UserByEmail
 
-	err := row.Scan(&user.Username,&user.Email,&user.Password)
+	err := row.Scan(&user.ID,&user.Username,&user.Email,&user.Password)
 
 	if err!=nil{
 		//Error jika data tidak ditemukan
