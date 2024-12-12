@@ -1,10 +1,11 @@
 package db
 
-import(
+import (
+	"a21hc3NpZ25tZW50/model"
 	"database/sql"
-    "fmt"
-    _ "github.com/lib/pq"
-    
+	"fmt"
+
+	_ "github.com/lib/pq"
 )
 
 type postgres struct{
@@ -15,15 +16,16 @@ func NewDatabase() *postgres {
     return &postgres{}
 }
 
-func(p*postgres) Connect(host string, port int, user string, password string, dbname string) (*sql.DB,error) {
+func(p*postgres) Connect(credential *model.Credential) (*sql.DB,error) {
     psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
         "password=%s dbname=%s sslmode=disable",
-        host, port, user, password, dbname)
+        credential.Host, credential.Port, credential.Username, credential.Password, credential.DatabaseName)
 
     db, err := sql.Open("postgres", psqlInfo)
     if err != nil {
         return nil, err
     }
+    
 
     p.DB = db
     return db, nil

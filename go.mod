@@ -12,10 +12,12 @@ require (
 )
 
 require (
+	github.com/golang-jwt/jwt/v4 v4.5.1 // indirect
 	github.com/gorilla/securecookie v1.1.2 // indirect
 	github.com/lib/pq v1.10.9 // indirect
+	golang.org/x/crypto v0.30.0 // indirect
 	golang.org/x/net v0.31.0 // indirect
-	golang.org/x/sys v0.27.0 // indirect
-	golang.org/x/text v0.20.0 // indirect
+	golang.org/x/sys v0.28.0 // indirect
+	golang.org/x/text v0.21.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

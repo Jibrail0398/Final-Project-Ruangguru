@@ -4,33 +4,21 @@ import (
 	"a21hc3NpZ25tZW50/db"
 	"a21hc3NpZ25tZW50/handler"
 	"a21hc3NpZ25tZW50/model"
+	"a21hc3NpZ25tZW50/service"
+	"a21hc3NpZ25tZW50/repository"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
+	_ "github.com/lib/pq"
+	
 )
 
 
 
 func main() {
-	
-	// Set up the router
-	router := mux.NewRouter()
-
-	// File analyze endpoint
-	router.HandleFunc("/analyze", handler.AnalyzeHandler).Methods("POST")
-
-	// Chat endpoint
-	router.HandleFunc("/chat", handler.ChatHandler).Methods("POST")
-
-	// Enable CORS
-	corsHandler := cors.New(cors.Options{
-		AllowedOrigins: []string{"http://localhost:3000"}, // Allow your React app's origin
-		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders: []string{"Content-Type", "Authorization"},
-	}).Handler(router)
 
 	//make connection database
 	database := db.NewDatabase()
@@ -44,7 +32,8 @@ func main() {
 		
 	}
 
-	_,err := database.Connect(credential.Host,credential.Port,credential.Username,credential.Password,credential.DatabaseName)
+	conn,err := database.Connect(&credential)
+
 
 	if err!=nil{
 		panic(err)
@@ -55,6 +44,40 @@ func main() {
 	if err!=nil{
 		fmt.Println(err)
 	}
+	
+	// Inisialisasi repository
+	userRepo := repository.NewUserRepo(conn)
+
+	// Inisialisasi service
+	userService := service.NewUserService(userRepo)
+
+	// Inisialisasi handler
+	apiHandler := handler.NewAPIHandler(userService)
+
+	// Set up the router
+	router := mux.NewRouter()
+
+	//register endpoint
+	router.HandleFunc("/register",apiHandler.RegisterHandler).Methods("POST")
+
+	//login endpoint
+	router.HandleFunc("/login",apiHandler.LoginHandler).Methods("POST")
+
+	// File analyze endpoint
+	router.HandleFunc("/analyze", handler.AnalyzeHandler).Methods("POST")
+
+	// Chat endpoint
+	router.HandleFunc("/chat", handler.ChatHandler).Methods("POST")
+
+
+	// Enable CORS
+	corsHandler := cors.New(cors.Options{
+		AllowedOrigins: []string{"http://localhost:3000"}, // Allow your React app's origin
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders: []string{"Content-Type", "Authorization"},
+	}).Handler(router)
+
+	
 
 	// Start the server
 	port := os.Getenv("PORT")

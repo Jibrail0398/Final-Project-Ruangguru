@@ -46,3 +46,26 @@ type Credential struct {
 	Port         int
 	
 }
+
+type UserByEmail struct{
+	Username	string
+	Email	string
+	Password string
+}
+
+type Register struct{
+	Username string `json:"username"`
+	Email	string `json:"email"`
+	Password string	`json:"password"`
+}
+
+type Login struct{
+	Email	string `json:"email"`
+	Password string	`json:"password"`
+}
+
+type LoginResponse struct{
+	Username	string `json:"username"`
+	Email	string `json:"email"`
+	Token string `json:"token"`
+}
