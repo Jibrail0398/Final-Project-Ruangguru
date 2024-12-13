@@ -1,8 +1,5 @@
 package model
 
-import(
-	"time"
-)
 
 type Inputs struct {
 	Table map[string][]string `json:"table"`
@@ -78,5 +75,14 @@ type LoginResponse struct{
 
 type Report struct{
 	Id int `json:"id"`
-	date time.Time `json:"date"`
+	Date string `json:"date"`
+	StringText string `json:"stringText"`
+	FK_ID_USER int `json:"fk_id_user"`
 }
+
+type GetChat struct{
+	Id int `json:"id"`
+	Date string `json:"date"`
+	Question string `json:"question"`
+	Response string `json:"response"`
+}	

@@ -47,38 +47,23 @@ func(p*postgres)Migrate()error{
         return fmt.Errorf("failed to create tabel users: %w", err)
     }
 
-    _,err = p.DB.Exec(
-        `CREATE TABLE IF NOT EXISTS report (
-		id SERIAL PRIMARY KEY,
-        date DATE NOT NULL UNIQUE,
+    _,err = p.DB.Exec(`
+        CREATE TABLE IF NOT EXISTS report (
+        id SERIAL PRIMARY KEY,
+        date VARCHAR(255) NOT NULL,
         stringText TEXT NOT NULL,
-		fk_id_user INTEGER NOT NULL,
-		FOREIGN KEY (fk_id_user) REFERENCES users(id))
-		`)
+        fk_id_user INTEGER NOT NULL,
+        FOREIGN KEY (fk_id_user) REFERENCES users(id),
+        CONSTRAINT unique_date_per_user UNIQUE (date, fk_id_user));
+	`)
     if err!=nil{
         return fmt.Errorf("failed to create tabel report: %w", err)
     }
 
     _,err = p.DB.Exec(
-        `CREATE TABLE IF NOT EXISTS analyze_report (
-		id SERIAL PRIMARY KEY,
-		date DATE NOT NULL,
-        response TEXT NOT NULL,
-        fk_id_user INTEGER NOT NULL,
-        fk_report_id INTEGER NOT NULL,
-        fk_query_id INTEGER NOT NULL,
-        FOREIGN KEY (fk_id_user) REFERENCES users(id),
-        FOREIGN KEY (fk_report_id) REFERENCES report(id),
-        FOREIGN KEY (fk_query_id) REFERENCES queryAI(id))
-		`)
-    if err!=nil{
-        return fmt.Errorf("failed to create tabel analyze_report: %w", err)
-    }
-
-    _,err = p.DB.Exec(
         `CREATE TABLE IF NOT EXISTS chat (
 		id SERIAL PRIMARY KEY,
-		date DATE NOT NULL,
+		date VARCHAR(255) NOT NULL,
         question TEXT NOT NULL,
         response TEXT NOT NULL,
         fk_id_user INTEGER NOT NULL,
@@ -90,16 +75,6 @@ func(p*postgres)Migrate()error{
     if err!=nil{
         return fmt.Errorf("failed to create tabel chat: %w", err)
     }
-
-    _,err = p.DB.Exec(
-        `CREATE TABLE IF NOT EXISTS queryAI (
-		id SERIAL PRIMARY KEY,
-        query VARCHAR(255) NOT NULL UNIQUE)
-		`)
-    if err!=nil{
-        return fmt.Errorf("failed to create tabel queryAI: %w", err)
-    }
-
 
     return nil
 }

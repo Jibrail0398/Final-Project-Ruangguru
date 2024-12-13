@@ -1,0 +1,7 @@
+Date,Time,Appliance,Energy_Consumption,Room,Status
+2022-02-01,00:00,Refrigerator,1.2,Kitchen,On
+2022-02-01,01:00,Refrigerator,1.2,Kitchen,On
+2022-02-01,02:00,Refrigerator,1.2,Kitchen,On
+2022-02-01,03:00,Refrigerator,1.2,Kitchen,On
+2022-02-01,04:00,Refrigerator,1.2,Kitchen,On
+2022-02-01,05:00,Refrigerator,1.2,Kitchen,On

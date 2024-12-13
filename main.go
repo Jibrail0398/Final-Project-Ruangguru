@@ -46,12 +46,16 @@ func main() {
 	
 	// Inisialisasi repository
 	userRepo := repository.NewUserRepo(conn)
-
+	reportRepo := repository.NewReportRepository(conn)
+	chatRepo := repository.NewChatRepository(conn)
 	// Inisialisasi service
 	userService := service.NewUserService(userRepo)
-
+	reportService := service.NewReportService(reportRepo)
+	chatService := service.NewChatService(chatRepo)
 	// Inisialisasi handler
 	apiHandler := handler.NewAPIHandler(userService)
+	reportHandler := handler.NewReportHandler(reportService)
+	chatCRUDHandler := handler.NewChatCRUDHandler(chatService)
 
 	// Set up the router
 	router := mux.NewRouter()
@@ -62,12 +66,23 @@ func main() {
 	//login endpoint
 	router.HandleFunc("/login",apiHandler.LoginHandler).Methods("POST")
 
-	// File analyze endpoint
-	router.HandleFunc("/analyze", handler.AuthMiddleware(handler.AnalyzeHandler) ).Methods("POST")
+	//upload report endpoint
+	router.HandleFunc("/upload",handler.AuthMiddleware(reportHandler.Upload)).Methods("POST")
+
+	// getreportByuser endpoint
+	router.HandleFunc("/get/report/{id}",handler.AuthMiddleware(reportHandler.GetReportByUser)).Methods("GET")
+
+	//delete report endpoint
+	router.HandleFunc("/delete/report/{id}",handler.AuthMiddleware(reportHandler.Delete)).Methods("DELETE")
 
 	// Chat endpoint
 	router.HandleFunc("/chat", handler.AuthMiddleware(handler.ChatHandler)).Methods("POST")
 
+	//save chat endpoint
+	router.HandleFunc("/chat/save",handler.AuthMiddleware(chatCRUDHandler.SaveChat)).Methods("POST")
+
+	//Get chat by report endpoint
+	router.HandleFunc("/chat/get/{id}",handler.AuthMiddleware(chatCRUDHandler.GetChatByReport)).Methods("GET")
 
 	// Enable CORS
 	corsHandler := cors.New(cors.Options{
