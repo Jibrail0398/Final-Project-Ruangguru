@@ -67,9 +67,9 @@ func(p*postgres)Migrate()error{
         question TEXT NOT NULL,
         response TEXT NOT NULL,
         fk_id_user INTEGER NOT NULL,
-        fk_report_id INTEGER NOT NULL,
+        fk_report_id INTEGER NOT NULL ,
         FOREIGN KEY (fk_id_user) REFERENCES users(id),
-        FOREIGN KEY (fk_report_id) REFERENCES report(id)
+        FOREIGN KEY (fk_report_id) REFERENCES report(id) ON DELETE CASCADE
         )
 		`)
     if err!=nil{

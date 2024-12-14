@@ -41,7 +41,7 @@ func(u *reportRepository) GetReportByUser(id_user int) ([]model.Report,error){
 	var reports []model.Report
 
 	query:=`
-		SELECT * FROM report WHERE id = $1 
+		SELECT * FROM report WHERE fk_id_user = $1 
 	`
 
 	rows,err:=u.db.Query(query,id_user)

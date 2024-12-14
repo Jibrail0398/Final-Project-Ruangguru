@@ -1,58 +1,131 @@
 import {ReactComponent as ListIcon } from '../assets/list.svg';
+import {ReactComponent as DeleteIcon} from '../assets/trash-fill.svg'
 import { useLocation, Link,useNavigate } from 'react-router-dom';
-import React, { useState } from "react";
+import React, { useState,useEffect,useRef } from "react";
 import ChatStart from "../component/ChatStart";
 import ChatEnd from "../component/ChatEnd";
 import axios from "axios";
 import  {ReactComponent as Send} from "../assets/send.svg";
-
+import Modal from "../component/Modal"
+import Loader from "../component/Loader"
 
 function ChatPage(){
 
     let navigate = useNavigate();
-    const [isDrawerOpen, setDrawerOpen] = useState(false);
+    const modalRef = useRef();
     const [file, setFile] = useState(null);
-    const [query, setQuery] = useState("");
-    const [response, setResponse] = useState("");
+    const [reports,setReport] = useState(null);
+    const [loading,setLoading] = useState(false)
     
     const location = useLocation();
     const isActive = (path) => location.pathname === path;
+    const [modalContent, setModalContent] = useState({
+        header: "",
+        message: "",
+    });
 
     const handleFileChange = (e) => {
         setFile(e.target.files[0]);
     };
 
+    const id_user = localStorage.getItem("id_user")
+    const token = localStorage.getItem("token")
+    
+
+    useEffect(()=>{
+        getReport()
+        console.log(reports)
+    },[])
+
+    
+
     const handleUpload = async () => {
+
+        setLoading(true)
         const formData = new FormData();
+
         formData.append("file", file);
+        formData.append("id_user", id_user);
+
+        console.log(file,id_user)
+
 
         try {
         const res = await axios.post('http://localhost:8080/upload', formData, {
             headers: {
             'Content-Type': 'multipart/form-data',
+            "Authorization":token,
             },
         });
+        setLoading(false)
         console.log(res)
+        setModalContent({
+            header: "Upload Success",
+            message: "Success upload file",
+        });
+        if (modalRef.current) {
+            modalRef.current.openModal();
+        }
+        
         } catch (error) {
-        console.error('Error uploading file:', error);
+            console.error('Error uploading file:', error);
+            setModalContent({
+                header:"Upload Failed",
+                message:"Error uploading file",
+            })
+            if (modalRef.current) {
+                modalRef.current.openModal();
+            }
+            setLoading(false)
         }
     };
 
     
 
     const Logout = ()=>{
-        const drawerToggle = document.getElementById('my-drawer');
-        if (drawerToggle) {
-            drawerToggle.checked = false;
-        } 
-        setDrawerOpen(false);
+       
         localStorage.clear()
         navigate("/")
+    }
+
+    const getReport = async ()=>{
+        
+        try{
+            const response = await axios.get("http://localhost:8080/get/report/"+id_user,
+                {headers:{
+                    'Content-Type':'application/json',
+                    "Authorization":token,
+                }}
+            )
+            
+            const data = response.data
+            setReport(data)
+
+
+        }catch(error){
+            console.log(error)
+        }
+    }
+
+    const deleteReport = async (id)=>{
+        try{
+            const response = await axios.delete("http://localhost:8080/delete/report/"+id,
+                {headers:{
+                    'Content-Type':'application/json',
+                    "Authorization":token,
+                }}
+            )
+            console.log(response)
+            getReport()
+        }catch(error){
+            console.log(error)
+        }
     }
     
     return(
         <>
-            <div  className='fixed right-0 top-0 m-4 mb-8  '>
+            <Modal ref={modalRef} header={modalContent.header} message={modalContent.message} />
+            <div  className='absolute right-0 top-0 m-4 mb-8  '>
                 <button className='bg-red-500  rounded-lg text-white p-4' onClick={Logout} >Logout</button>
             </div>
             <div  >
@@ -69,21 +142,20 @@ function ChatPage(){
                         <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay z-100  "></label>
                         <ul className="menu bg-base-200 overflow-y-auto flex-1 text-base-content min-h-full w-80 p-4">
                             <h1 className='text-2xl  font-bold font-roboto mb-5' >History</h1>
-                            {/* Sidebar content here */}
-                            <Link
-                            to="/sidebar-item-1"
-                            className={`text-lg mb-2 ${isActive('/Chat') ? 'mb-2 bg-blue-500 text-white rounded-xl p-2' : ''}`}
-                            >
-                            Sidebar Item 1
-                            </Link>
-
-                            <Link
-                            to="/sidebar-item-1"
-                            className={`text-lg mb-2 ${isActive('/Chat') ? 'mb-2 bg-blue-500 text-white rounded-xl p-2' : ''}`}
-                            >
-                            Sidebar Item 1
-                            </Link>
-                           
+                            {/* Sidebar content here */}                          
+                            
+                            {
+                                
+                            reports && reports.map(item=>(
+                                <div className='flex w-full justify-between items-center ' key={item.id} >
+                                    <Link
+                                        className={` w-3/4 text-lg mb-2 ${isActive('/Chat') ? 'mb-2 bg-slate-400 text-white rounded-xl p-2' : 'w-3/4 mb-2  text-black rounded-xl p-2'}`}
+                                    >
+                                        {item.date}
+                                    </Link>
+                                    <DeleteIcon onClick={()=>deleteReport(item.id)} style={{ fill: 'red' }} />
+                                </div>
+                            ))}
                             
                             
                         </ul>
@@ -105,8 +177,10 @@ function ChatPage(){
                     />
                     <button 
                         className='block mx-auto p-2 w-3/4 mt-4 sm:w-1/4 sm:mt-0 bg-sky-500 rounded-xl text-white sm:ml-0 sm:px-4' 
+                        onClick={handleUpload}
                     >
-                        Upload
+                        {loading ? <Loader/>:"Upload"}
+                        
                     </button>
 
                 </div>

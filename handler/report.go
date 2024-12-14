@@ -5,7 +5,6 @@ import (
 	"a21hc3NpZ25tZW50/service"
 	"encoding/json"
 	"io"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -91,7 +90,7 @@ func(h *ReportHandler) GetReportByUser(w http.ResponseWriter, r *http.Request){
 	id_userInt,_ := strconv.Atoi(id_user)
 
 	report,err := h.ReportService.GetReportByUser(id_userInt)
-	log.Println("terjadi error di reportService")
+	
 	if err!=nil{
 		w.WriteHeader(400)
 		errorResponse := model.Error{Error: err.Error()}
