@@ -1,5 +1,5 @@
 import {ReactComponent as ListIcon } from '../assets/list.svg';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, Link,useNavigate } from 'react-router-dom';
 import React, { useState } from "react";
 import ChatStart from "../component/ChatStart";
 import ChatEnd from "../component/ChatEnd";
@@ -9,6 +9,8 @@ import  {ReactComponent as Send} from "../assets/send.svg";
 
 function ChatPage(){
 
+    let navigate = useNavigate();
+    const [isDrawerOpen, setDrawerOpen] = useState(false);
     const [file, setFile] = useState(null);
     const [query, setQuery] = useState("");
     const [response, setResponse] = useState("");
@@ -35,38 +37,61 @@ function ChatPage(){
         console.error('Error uploading file:', error);
         }
     };
+
+    
+
+    const Logout = ()=>{
+        const drawerToggle = document.getElementById('my-drawer');
+        if (drawerToggle) {
+            drawerToggle.checked = false;
+        } 
+        setDrawerOpen(false);
+        localStorage.clear()
+        navigate("/")
+    }
     
     return(
         <>
-            <div >
-                
-                <div className="drawer z-[100]">
+            <div  className='fixed right-0 top-0 m-4 mb-8  '>
+                <button className='bg-red-500  rounded-lg text-white p-4' onClick={Logout} >Logout</button>
+            </div>
+            <div  >
+                <div className="drawer z-[100] w-1/2 ">
                     <input id="my-drawer" type="checkbox" className="drawer-toggle" />
-                    <div className="drawer-content">
+                    <div className="drawer-content ">
                         
                         <label htmlFor="my-drawer">
-                            <ListIcon className='ListIcon cursor-pointer m-2 mb-8' width={50} height={50} />
+                            <ListIcon className='  ListIcon cursor-pointer m-2 mb-8' width={50} height={50} />
                         </label>
                     
                     </div>
                     <div className="drawer-side ">
-                        <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay z-100"></label>
-                        <ul className="menu bg-base-200 text-base-content min-h-full w-80 p-4">
-                            <h1 className='text-2xl font-bold font-roboto mb-5' >History</h1>
+                        <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay z-100  "></label>
+                        <ul className="menu bg-base-200 overflow-y-auto flex-1 text-base-content min-h-full w-80 p-4">
+                            <h1 className='text-2xl  font-bold font-roboto mb-5' >History</h1>
                             {/* Sidebar content here */}
                             <Link
                             to="/sidebar-item-1"
-                            className={`text-lg ${isActive('/Chat') ? 'bg-blue-500 text-white rounded-xl p-2' : ''}`}
+                            className={`text-lg mb-2 ${isActive('/Chat') ? 'mb-2 bg-blue-500 text-white rounded-xl p-2' : ''}`}
                             >
                             Sidebar Item 1
                             </Link>
+
+                            <Link
+                            to="/sidebar-item-1"
+                            className={`text-lg mb-2 ${isActive('/Chat') ? 'mb-2 bg-blue-500 text-white rounded-xl p-2' : ''}`}
+                            >
+                            Sidebar Item 1
+                            </Link>
+                           
+                            
                             
                         </ul>
                     </div>
                     
                 </div>
                 
-                <div className='sm:flex sm:justify-center sm:items-center sm:space-x-2'>
+                <div className='  sm:flex sm:justify-center sm:items-center sm:space-x-2'>
                     <input 
                         type="file" 
                         className="mx-auto block sm:w-3/4 max-w-lg p-3 text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-700 hover:bg-gray-100 transition-all duration-300 ease-in-out
@@ -86,6 +111,10 @@ function ChatPage(){
 
                 </div>
             </div>
+            <ChatEnd/>
+            <ChatStart/>
+            <ChatEnd/>
+            <ChatStart/>
             <ChatEnd/>
             <ChatStart/>
 
