@@ -66,7 +66,10 @@ func (h * ReportHandler) Upload(w http.ResponseWriter, r *http.Request){
 	id_userInt,_ := strconv.Atoi(id_user)
 	dateFile := string(resultFile["Date"][0])
 
-	err = h.ReportService.Upload(id_userInt,dateFile,resultString)
+	id_report,err := h.ReportService.Upload(id_userInt,dateFile,resultString)
+
+	id_report_string := strconv.Itoa(id_report)
+
 	if err!=nil{
 		w.WriteHeader(400)
 		errorResponse := model.Error{Error: err.Error()}
@@ -76,8 +79,9 @@ func (h * ReportHandler) Upload(w http.ResponseWriter, r *http.Request){
 
 	response := map[string]string{
 		"Message":"success upload file",
-		"id_report":id_user,
+		"id_report":id_report_string,
 		"stringText":resultString,
+		"date":dateFile,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)

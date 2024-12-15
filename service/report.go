@@ -7,7 +7,7 @@ import(
 )
 
 type ReportService interface{
-	Upload(id_user int,date string,stringText string)error
+	Upload(id_user int, date string, stringText string) (int, error)
 	GetReportByUser(id_user int) ([]model.Report,error)
 	Delete(id_user int)error
 }
@@ -21,15 +21,15 @@ func NewReportService(reportRepository repository.ReportRepository) ReportServic
 	
 }
 
-func(s *reportService) Upload(id_user int,date string,stringText string) error {
+func(s *reportService) Upload(id_user int, date string, stringText string) (int, error) {
 
-	err := s.reportRepository.SaveReport(id_user,date,stringText)
+	id,err := s.reportRepository.SaveReport(id_user,date,stringText)
 	
 	if err!=nil{
-		return err
+		return 0,err
 	}
 
-	return nil
+	return id,nil
 
 }
 

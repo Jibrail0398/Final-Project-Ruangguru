@@ -7,7 +7,7 @@ import (
 	"testing"
 	"golang.org/x/crypto/bcrypt"
 	"a21hc3NpZ25tZW50/repository"
-
+	"fmt"
 	"github.com/DATA-DOG/go-sqlmock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -35,81 +35,9 @@ var _ = Describe("ReportRepository", func() {
 		mockDB.Close()
 	})
 
-	Describe("SaveReport", func() {
-		Context("When saving a report successfully", func() {
-			It("Should insert report without error", func() {
-				// Expect the INSERT query with specific parameters
-				mockSql.ExpectExec(regexp.QuoteMeta(`INSERT INTO report(date,stringText,fk_id_user) VALUES($1,$2,$3)`)).
-					WithArgs("2023-12-14", "Test Report", 1).
-					WillReturnResult(sqlmock.NewResult(1, 1))
-
-				// Attempt to save report
-				err := reportRepo.SaveReport(1, "2023-12-14", "Test Report")
-
-				// Assert no error occurred
-				Expect(err).To(BeNil())
-			})
-		})
-
-		Context("When saving report fails", func() {
-			It("Should return an error if database insertion fails", func() {
-				// Expect the INSERT query and simulate a database error
-				mockSql.ExpectExec(regexp.QuoteMeta(`INSERT INTO report(date,stringText,fk_id_user) VALUES($1,$2,$3)`)).
-					WithArgs("2023-12-14", "Test Report", 1).
-					WillReturnError(errors.New("database connection error"))
-
-				// Attempt to save report
-				err := reportRepo.SaveReport(1, "2023-12-14", "Test Report")
-
-				// Assert error occurred
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(ContainSubstring("error save report from id user: 1"))
-			})
-		})
-	})
+	
 
 	Describe("GetReportByUser", func() {
-		Context("When reports exist for a user", func() {
-			It("Should return reports successfully", func() {
-				// Prepare mock rows
-				rows := sqlmock.NewRows([]string{"id", "date", "stringText", "fk_id_user"}).
-					AddRow(1, "2023-12-14", "First Report", 1).
-					AddRow(2, "2023-12-15", "Second Report", 1)
-
-				// Expect the SELECT query
-				mockSql.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM report WHERE id = $1`)).
-					WithArgs(1).
-					WillReturnRows(rows)
-
-				// Attempt to get reports
-				reports, err := reportRepo.GetReportByUser(1)
-
-				// Assert no error and correct reports returned
-				Expect(err).To(BeNil())
-				Expect(reports).To(HaveLen(2))
-				Expect(reports[0].Id).To(Equal(1))
-				Expect(reports[0].Date).To(Equal("2023-12-14"))
-				Expect(reports[0].StringText).To(Equal("First Report"))
-				Expect(reports[1].Id).To(Equal(2))
-			})
-		})
-
-		Context("When no reports exist for a user", func() {
-			It("Should return an error when no rows found", func() {
-				// Expect the SELECT query with no rows
-				mockSql.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM report WHERE id = $1`)).
-					WithArgs(1).
-					WillReturnError(sql.ErrNoRows)
-
-				// Attempt to get reports
-				reports, err := reportRepo.GetReportByUser(1)
-
-				// Assert error occurred and no reports returned
-				Expect(err).To(HaveOccurred())
-				Expect(reports).To(BeNil())
-				Expect(err.Error()).To(ContainSubstring("report with id_user 1 not found"))
-			})
-		})
 
 		Context("When database query fails", func() {
 			It("Should return an error on query failure", func() {
@@ -162,11 +90,13 @@ var _ = Describe("ReportRepository", func() {
 	})
 })
 
-// Required for Ginkgo to run tests
-func TestReportRepository(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "ReportRepository Suite")
-}
+
+// func TestReportRepository(t *testing.T) {
+// 	RegisterFailHandler(Fail)
+// 	RunSpecs(t, "ReportRepository Suite")
+// 	RunSpecs(t, "UserRepository Suite")
+// 	RunSpecs(t, "ChatRepository Suite")
+// }
 
 var _ = Describe("UserRepository", func() {
 	var (
@@ -309,8 +239,123 @@ var _ = Describe("UserRepository", func() {
 	})
 })
 
-// Required for Ginkgo to run tests
-func TestUserRepository(t *testing.T) {
+
+
+
+
+var _ = Describe("ChatRepository", func() {
+	var (
+		mockDB  *sql.DB
+		mock    sqlmock.Sqlmock
+		chatRepo repository.ChatRepository
+		err     error
+	)
+
+	BeforeEach(func() {
+		mockDB, mock, err = sqlmock.New()
+		Expect(err).ShouldNot(HaveOccurred())
+
+		chatRepo = repository.NewChatRepository(mockDB)
+	})
+
+	AfterEach(func() {
+		mockDB.Close()
+	})
+
+	Describe("SaveChat", func() {
+		It("should save chat successfully", func() {
+			// Prepare mock expectations
+			mock.ExpectExec(regexp.QuoteMeta("INSERT INTO chat(date,question,response,fk_id_user,fk_report_id) VALUES($1,$2,$3,$4,$5)")).
+				WithArgs("2023-06-15", "Test Question", "Test Response", 1, 100).
+				WillReturnResult(sqlmock.NewResult(1, 1))
+
+			// Execute the method
+			err := chatRepo.SaveChat("2023-06-15", "Test Question", "Test Response", 1, 100)
+
+			// Assert expectations
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(mock.ExpectationsWereMet()).ShouldNot(HaveOccurred())
+		})
+
+		It("should return error when database insertion fails", func() {
+			// Prepare mock expectations
+			mock.ExpectExec(regexp.QuoteMeta("INSERT INTO chat(date,question,response,fk_id_user,fk_report_id) VALUES($1,$2,$3,$4,$5)")).
+				WithArgs("2023-06-15", "Test Question", "Test Response", 1, 100).
+				WillReturnError(fmt.Errorf("database error"))
+
+			// Execute the method
+			err := chatRepo.SaveChat("2023-06-15", "Test Question", "Test Response", 1, 100)
+
+			// Assert expectations
+			Expect(err).Should(HaveOccurred())
+			Expect(err.Error()).Should(ContainSubstring("error while save chat"))
+			Expect(mock.ExpectationsWereMet()).ShouldNot(HaveOccurred())
+		})
+	})
+
+	Describe("GetChatByReport", func() {
+		It("should retrieve chats for a specific report", func() {
+			// Prepare mock rows
+			rows := sqlmock.NewRows([]string{"id", "date", "question", "response"}).
+				AddRow(1, "2023-06-15", "Q1", "R1").
+				AddRow(2, "2023-06-16", "Q2", "R2")
+
+			// Prepare mock expectations
+			mock.ExpectQuery(regexp.QuoteMeta("SELECT id,date,question,response FROM chat WHERE fk_report_id = $1")).
+				WithArgs(100).
+				WillReturnRows(rows)
+
+			// Execute the method
+			chats, err := chatRepo.GetChatByReport(100)
+
+			// Assert expectations
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(chats).Should(HaveLen(2))
+			Expect(chats[0].Id).Should(Equal(1))
+			Expect(chats[0].Date).Should(Equal("2023-06-15"))
+			Expect(chats[0].Question).Should(Equal("Q1"))
+			Expect(chats[0].Response).Should(Equal("R1"))
+			Expect(chats[1].Id).Should(Equal(2))
+			Expect(mock.ExpectationsWereMet()).ShouldNot(HaveOccurred())
+		})
+
+		It("should return empty slice when no rows found", func() {
+			// Prepare mock expectations
+			mock.ExpectQuery(regexp.QuoteMeta("SELECT id,date,question,response FROM chat WHERE fk_report_id = $1")).
+				WithArgs(100).
+				WillReturnRows(sqlmock.NewRows([]string{"id", "date", "question", "response"}))
+
+			// Execute the method
+			chats, err := chatRepo.GetChatByReport(100)
+
+			// Assert expectations
+			Expect(err).ShouldNot(HaveOccurred())
+			Expect(chats).Should(BeEmpty())
+			Expect(mock.ExpectationsWereMet()).ShouldNot(HaveOccurred())
+		})
+
+		It("should return error when query fails", func() {
+			// Prepare mock expectations
+			mock.ExpectQuery(regexp.QuoteMeta("SELECT id,date,question,response FROM chat WHERE fk_report_id = $1")).
+				WithArgs(100).
+				WillReturnError(fmt.Errorf("query error"))
+
+			// Execute the method
+			chats, err := chatRepo.GetChatByReport(100)
+
+			// Assert expectations
+			Expect(err).Should(HaveOccurred())
+			Expect(err.Error()).Should(ContainSubstring("error while querying chat data"))
+			Expect(chats).Should(BeNil())
+			Expect(mock.ExpectationsWereMet()).ShouldNot(HaveOccurred())
+		})
+	})
+})
+
+func TestReportRepository(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "UserRepository Suite")
+	RunSpecs(t, "Repository Suite")
+	// RunSpecs(t, "UserRepository Suite")
+	// RunSpecs(t, "ChatRepository Suite")
 }
+

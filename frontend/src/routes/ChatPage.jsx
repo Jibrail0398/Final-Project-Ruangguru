@@ -15,14 +15,23 @@ function ChatPage(){
     const modalRef = useRef();
     const [file, setFile] = useState(null);
     const [reports,setReport] = useState(null);
-    const [loading,setLoading] = useState(false)
+    const [loading,setLoading] = useState(false);
+    const [question,setQuestion] = useState("");
+    const [aiResponse,setAIResponse] = useState({
+        question:[],
+        answer:[],
+    });
+    const [isLoadingChat,setIsLoadingChat] = useState(false)
     
     const location = useLocation();
-    const isActive = (path) => location.pathname === path;
+    // const isActive = (path) => location.pathname === path;
+    const [hasUploadFile,setHasUploafFile] = useState(false);
+    const [uploadFileData,setUploadFileData] = useState(null);
     const [modalContent, setModalContent] = useState({
         header: "",
         message: "",
     });
+    
 
     const handleFileChange = (e) => {
         setFile(e.target.files[0]);
@@ -34,7 +43,7 @@ function ChatPage(){
 
     useEffect(()=>{
         getReport()
-        console.log(reports)
+        
     },[])
 
     
@@ -47,8 +56,6 @@ function ChatPage(){
         formData.append("file", file);
         formData.append("id_user", id_user);
 
-        console.log(file,id_user)
-
 
         try {
         const res = await axios.post('http://localhost:8080/upload', formData, {
@@ -57,8 +64,8 @@ function ChatPage(){
             "Authorization":token,
             },
         });
-        setLoading(false)
-        console.log(res)
+        
+        setUploadFileData(res)
         setModalContent({
             header: "Upload Success",
             message: "Success upload file",
@@ -66,7 +73,14 @@ function ChatPage(){
         if (modalRef.current) {
             modalRef.current.openModal();
         }
-        
+
+        console.log(res)
+
+        getReport()
+        setHasUploafFile(true)
+        localStorage.setItem("id_report",res.data.id_report);
+        localStorage.setItem("date",res.data.date);
+        setLoading(false)
         } catch (error) {
             console.error('Error uploading file:', error);
             setModalContent({
@@ -115,12 +129,54 @@ function ChatPage(){
                     "Authorization":token,
                 }}
             )
-            console.log(response)
+            
             getReport()
         }catch(error){
             console.log(error)
         }
     }
+
+    const aiChat = async ()=>{
+        try{
+            
+            setIsLoadingChat(true)
+          
+            const formData = new FormData();
+            formData.append("id_user", localStorage.getItem("id_user"));
+            formData.append("id_report",localStorage.getItem("id_report"));
+            formData.append("date",localStorage.getItem("date"));
+            formData.append("query",question);
+            formData.append("document", uploadFileData.data.stringText);
+
+            setQuestion("")
+
+            const response = await axios.post("http://localhost:8080/chat",formData,
+                {
+                    headers:{
+                        'Content-Type': 'multipart/form-data',
+                        "Authorization":token,
+                    }
+                }
+            )
+            console.log(response)
+
+            
+
+            setAIResponse((prevState) => ({
+                ...prevState, 
+                question: [...prevState.question, response.data.Question], 
+                answer: [...prevState.answer, response.data.responseAI],  
+            }));
+
+            setIsLoadingChat(false)
+            
+        }
+        catch(error){
+            console.log(error)
+            setIsLoadingChat(false)
+        }
+    }
+    
     
     return(
         <>
@@ -148,8 +204,13 @@ function ChatPage(){
                                 
                             reports && reports.map(item=>(
                                 <div className='flex w-full justify-between items-center ' key={item.id} >
-                                    <Link
+                                    {/* <Link
                                         className={` w-3/4 text-lg mb-2 ${isActive('/Chat') ? 'mb-2 bg-slate-400 text-white rounded-xl p-2' : 'w-3/4 mb-2  text-black rounded-xl p-2'}`}
+                                    >
+                                        {item.date}
+                                    </Link> */}
+                                    <Link
+                                        className='w-3/4 mb-2  text-black rounded-xl p-2'
                                     >
                                         {item.date}
                                     </Link>
@@ -185,20 +246,37 @@ function ChatPage(){
 
                 </div>
             </div>
-            <ChatEnd/>
-            <ChatStart/>
-            <ChatEnd/>
-            <ChatStart/>
-            <ChatEnd/>
-            <ChatStart/>
+            
+            <div className="chat-container max-h-screen overflow-y-auto">
+                {aiResponse.question.map((q, index) => (
+                    <React.Fragment key={index}>
+                        <ChatEnd message={q} />
+                        <ChatStart message={aiResponse.answer[index]} />
+                    </React.Fragment>
+                ))}
+            </div>
 
             <div className="fixed bottom-0 left-0 right-0 w-full p-4 bg-white shadow-lg  flex items-center space-x-2 h-10">
                 <input 
                     type="text" 
+                    value={question} 
+                    onChange={(e)=>{setQuestion(e.target.value)}}
                     className="input input-bordered  w-full mb-14 p-4" 
                 />
                 <button >
-                    <Send className='Send mb-10 ' width={40} height={40} />
+                {hasUploadFile === true && (
+                    isLoadingChat? (
+                        <Loader /> 
+                    ) : (
+                        <Send 
+                            className='Send mb-10' 
+                            onClick={aiChat} 
+                            width={40} 
+                            height={40} 
+                        />
+                    )
+                )}
+                    
                 </button>
             </div>
         </>

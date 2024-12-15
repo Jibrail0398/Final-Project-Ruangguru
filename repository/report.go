@@ -9,7 +9,7 @@ import (
 )
 
 type ReportRepository interface {
-	SaveReport(id_user int,date string,stringText string) error
+	SaveReport(id_user int, date string, stringText string) (int, error)
 	GetReportByUser(id_user int) ([]model.Report,error)
 	Delete(id_user int)error
 }
@@ -22,20 +22,25 @@ func NewReportRepository(db *sql.DB) *reportRepository {
 	return &reportRepository{db: db}
 }
 
-func(u *reportRepository) SaveReport(id_user int,date string,stringText string)error{
+func (u *reportRepository) SaveReport(id_user int, date string, stringText string) (int, error) {
+    var reportID int // Variabel untuk menyimpan ID dari baris yang baru ditambahkan
 
-	query := `
-		INSERT INTO report(date,stringText,fk_id_user) VALUES($1,$2,$3)
-	`
-	_,err := u.db.Exec(query,date,stringText,id_user)
+    query := `
+        INSERT INTO report (date, stringText, fk_id_user) 
+        VALUES ($1, $2, $3) 
+        RETURNING id
+    `
 
-	if err!=nil{
-		return fmt.Errorf("error save report from id user: %d",id_user)
-	}
+    // Gunakan QueryRow untuk menjalankan query dan menangkap nilai RETURNING
+    err := u.db.QueryRow(query, date, stringText, id_user).Scan(&reportID)
+    if err != nil {
+        return 0, fmt.Errorf("error saving report for user ID %d: %v", id_user, err)
+    }
 
-	return nil
-
+    // Kembalikan ID baris yang baru saja ditambahkan
+    return reportID, nil
 }
+
 func(u *reportRepository) GetReportByUser(id_user int) ([]model.Report,error){
 
 	var reports []model.Report

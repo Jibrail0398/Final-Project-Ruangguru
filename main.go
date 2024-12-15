@@ -76,7 +76,7 @@ func main() {
 	router.HandleFunc("/delete/report/{id}",handler.AuthMiddleware(reportHandler.Delete)).Methods("DELETE")
 
 	// Chat endpoint
-	router.HandleFunc("/chat", handler.AuthMiddleware(handler.ChatHandler)).Methods("POST")
+	router.HandleFunc("/chat", handler.AuthMiddleware(chatCRUDHandler.ChatHandler)).Methods("POST")
 
 	//save chat endpoint
 	router.HandleFunc("/chat/save",handler.AuthMiddleware(chatCRUDHandler.SaveChat)).Methods("POST")

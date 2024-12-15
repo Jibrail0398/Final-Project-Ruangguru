@@ -1,7 +1,7 @@
 package repository
 
 import (
-	// "a21hc3NpZ25tZW50/model"
+	
 	"a21hc3NpZ25tZW50/model"
 	"database/sql"
 	"fmt"
@@ -34,7 +34,7 @@ func(u *chatRepository) SaveChat(date string,question string, response string, f
 	_,err := u.db.Exec(query,date,question, response, fk_id_user, fk_report_id)
 
 	if err!= nil{
-		return fmt.Errorf("error while save chat")
+		return fmt.Errorf("error while save chat",err)
 	}
 
 	return nil
