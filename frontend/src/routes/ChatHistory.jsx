@@ -19,8 +19,9 @@ function ChatHistory(){
     
     //untuk menangkap data report untuk sidebar
     const [reports,setReport] = useState(null);
-    //untuk loading
-    const [loading,setLoading] = useState(false);
+
+    const [isNewChat,setNewChat] = useState(false);
+
     //pertanyaan di kolom chat AI yang dibawah
     const [question,setQuestion] = useState("");
     //untuk menangkap response dari AI
@@ -51,23 +52,29 @@ function ChatHistory(){
     
     //fungsi untuk melakukan fitur new chat
     const reset = ()=>{
-        
         setQuestion("")
-        setAIResponse({
-            question:[],
-            answer:[],
-        });
-        getHistoryChat(id)
-
+        
     }
 
 
     //react lifecycle untuk menangkap data report yang ada di sidebar
     useEffect(()=>{
-        reset()
         getReport() 
         getHistoryChat(id)
-    },[])
+
+        return()=>{
+            localStorage.removeItem("date")
+            localStorage.removeItem("stringText")
+            localStorage.removeItem("id_report")
+        }
+    },[id])
+
+    // useEffect(()=>{
+    //     getReport() 
+    //     getHistoryChat(id)
+
+    // },[id])
+    
 
     //fungsi ambil history chat
 
@@ -122,9 +129,10 @@ function ChatHistory(){
             setReport(data)
             data.forEach(element => {
                 if (element.id == id){
-                    console.log( "ini dari foreach:", element.id,id)
-                    localStorage.setItem("date ",element.date)
+                    
+                    localStorage.setItem("date",element.date)
                     localStorage.setItem("stringText",element.stringText)
+                    localStorage.setItem("id_report",element.id)
 
                 }
             });
@@ -162,7 +170,7 @@ function ChatHistory(){
             formData.append("id_report",localStorage.getItem("id_report"));
             formData.append("date",localStorage.getItem("date"));
             formData.append("query",question);
-            // formData.append("document", uploadFileData.data.stringText);
+            formData.append("document", localStorage.getItem("stringText"));
 
             setQuestion("")
 
@@ -181,6 +189,7 @@ function ChatHistory(){
                 answer: [...prevState.answer, response.data.responseAI],  
             }));
 
+            
             setIsLoadingChat(false)
             
         }
@@ -219,7 +228,7 @@ function ChatHistory(){
                                 <div className='flex w-full justify-between items-center ' key={item.id} >
                                     
                                     <Link to={"/Chat/"+item.id}
-                                        onClick={reset}
+                                    
                                         className={` w-3/4 text-lg mb-2 ${isActive('/Chat/'+item.id) ? 'mb-2 bg-slate-400 text-white rounded-xl p-2' : 'w-3/4 mb-2  text-black rounded-xl p-2'}`}
                                         
                                     >

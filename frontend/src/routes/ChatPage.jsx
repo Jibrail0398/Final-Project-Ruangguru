@@ -24,7 +24,7 @@ function ChatPage(){
     const [isLoadingChat,setIsLoadingChat] = useState(false)
     
     const location = useLocation();
-    // const isActive = (path) => location.pathname === path;
+    
     const [hasUploadFile,setHasUploafFile] = useState(false);
     const [uploadFileData,setUploadFileData] = useState(null);
     const [modalContent, setModalContent] = useState({
@@ -52,6 +52,12 @@ function ChatPage(){
 
     useEffect(()=>{
         getReport()
+
+        return()=>{
+            
+            localStorage.removeItem("id_report")
+            localStorage.removeItem("date")
+        }
         
     },[])
 
@@ -210,11 +216,7 @@ function ChatPage(){
                                 
                             reports && reports.map(item=>(
                                 <div className='flex w-full justify-between items-center ' key={item.id} >
-                                    {/* <Link
-                                        className={` w-3/4 text-lg mb-2 ${isActive('/Chat') ? 'mb-2 bg-slate-400 text-white rounded-xl p-2' : 'w-3/4 mb-2  text-black rounded-xl p-2'}`}
-                                    >
-                                        {item.date}
-                                    </Link> */}
+                                    
                                     <Link to={"/Chat/"+item.id}
                                         className='w-3/4 mb-2  text-black rounded-xl p-2'
                                         
