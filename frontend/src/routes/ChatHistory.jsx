@@ -24,6 +24,8 @@ function ChatHistory(){
 
     //pertanyaan di kolom chat AI yang dibawah
     const [question,setQuestion] = useState("");
+    // Referensi untuk container chat
+    const chatContainerRef = useRef(null);
     //untuk menangkap response dari AI
     const [aiResponse,setAIResponse] = useState({
         question:[],
@@ -69,13 +71,19 @@ function ChatHistory(){
         }
     },[id])
 
-    // useEffect(()=>{
-    //     getReport() 
-    //     getHistoryChat(id)
+    // Fungsi untuk menggulir ke bawah
+    const scrollToBottom = () => {
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        }
+    };
 
-    // },[id])
+    // Scroll otomatis setiap kali ada pesan baru
+    useEffect(() => {
+        scrollToBottom();
+    }, [aiResponse]);
     
-
+    
     //fungsi ambil history chat
 
     const getHistoryChat = async (id) =>{
@@ -246,7 +254,11 @@ function ChatHistory(){
             
             </div>
             
-            <div className="chat-container max-h-screen overflow-y-auto">
+            <div
+                ref={chatContainerRef} // Pasang referensi ke elemen ini
+                className="chat-container max-h-screen overflow-y-auto"
+                style={{ maxHeight: "80vh" }} // Atur tinggi maksimal sesuai kebutuhan
+            >
                 {aiResponse.question.map((q, index) => (
                     <React.Fragment key={index}>
                         <ChatEnd message={q} />

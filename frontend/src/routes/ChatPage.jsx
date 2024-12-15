@@ -17,13 +17,16 @@ function ChatPage(){
     const [reports,setReport] = useState(null);
     const [loading,setLoading] = useState(false);
     const [question,setQuestion] = useState("");
+
+    // Referensi untuk container chat
+    const chatContainerRef = useRef(null);
+
     const [aiResponse,setAIResponse] = useState({
         question:[],
         answer:[],
     });
     const [isLoadingChat,setIsLoadingChat] = useState(false)
     
-    const location = useLocation();
     
     const [hasUploadFile,setHasUploafFile] = useState(false);
     const [uploadFileData,setUploadFileData] = useState(null);
@@ -60,6 +63,18 @@ function ChatPage(){
         }
         
     },[])
+
+    // Fungsi untuk menggulir ke bawah
+    const scrollToBottom = () => {
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+        }
+    };
+
+    // Scroll otomatis setiap kali ada pesan baru
+    useEffect(() => {
+        scrollToBottom();
+    }, [aiResponse]);
 
     const handleUpload = async () => {
 
@@ -254,16 +269,20 @@ function ChatPage(){
                     </button>
 
                 </div>
+                <div
+                    ref={chatContainerRef} // Pasang referensi ke elemen ini
+                    className="chat-container max-h-screen overflow-y-auto"
+                    style={{ maxHeight: "80vh" }} // Atur tinggi maksimal sesuai kebutuhan
+                >
+                    {aiResponse.question.map((q, index) => (
+                        <React.Fragment key={index}>
+                            <ChatEnd message={q} />
+                            <ChatStart message={aiResponse.answer[index]} />
+                        </React.Fragment>
+                    ))}
+                </div>
             </div>
             
-            <div className="chat-container max-h-screen overflow-y-auto">
-                {aiResponse.question.map((q, index) => (
-                    <React.Fragment key={index}>
-                        <ChatEnd message={q} />
-                        <ChatStart message={aiResponse.answer[index]} />
-                    </React.Fragment>
-                ))}
-            </div>
 
             <div className="fixed bottom-0 left-0 right-0 w-full p-4 bg-white shadow-lg  flex items-center space-x-2 h-10">
                 <input 
