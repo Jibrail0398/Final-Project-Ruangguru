@@ -1,6 +1,6 @@
 import {ReactComponent as ListIcon } from '../assets/list.svg';
 import {ReactComponent as DeleteIcon} from '../assets/trash-fill.svg'
-import { useLocation, Link,useNavigate } from 'react-router-dom';
+import { useLocation, Link,useNavigate,useParams } from 'react-router-dom';
 import React, { useState,useEffect,useRef } from "react";
 import ChatStart from "../component/ChatStart";
 import ChatEnd from "../component/ChatEnd";
@@ -9,104 +9,105 @@ import  {ReactComponent as Send} from "../assets/send.svg";
 import Modal from "../component/Modal"
 import Loader from "../component/Loader"
 
-function ChatPage(){
-
+function ChatHistory(){
+    //Menangkap id dari url parameter
+    let { id } = useParams();
+    //untuk navigate
     let navigate = useNavigate();
+    //referensi modal untuk keperluan membuka modal dari elemen parent
     const modalRef = useRef();
-    const [file, setFile] = useState(null);
+    
+    //untuk menangkap data report untuk sidebar
     const [reports,setReport] = useState(null);
+    //untuk loading
     const [loading,setLoading] = useState(false);
+    //pertanyaan di kolom chat AI yang dibawah
     const [question,setQuestion] = useState("");
+    //untuk menangkap response dari AI
     const [aiResponse,setAIResponse] = useState({
         question:[],
         answer:[],
     });
+    //loading saat chat
     const [isLoadingChat,setIsLoadingChat] = useState(false)
     
     const location = useLocation();
-    // const isActive = (path) => location.pathname === path;
-    const [hasUploadFile,setHasUploafFile] = useState(false);
-    const [uploadFileData,setUploadFileData] = useState(null);
+    
+
+    const isActive = (path) => location.pathname === path;
+
+
+
+    //ini untuk modal
     const [modalContent, setModalContent] = useState({
         header: "",
         message: "",
     });
+
+
+    //Ambil data id_user dan token dari localStorage
     const id_user = localStorage.getItem("id_user")
     const token = localStorage.getItem("token")
     
+    //fungsi untuk melakukan fitur new chat
     const reset = ()=>{
-        setFile(null)
+        
         setQuestion("")
         setAIResponse({
             question:[],
             answer:[],
         });
-        setHasUploafFile(false)
-        setUploadFileData(null)
+        getHistoryChat(id)
 
     }
 
-    const handleFileChange = (e) => {
-        setFile(e.target.files[0]);
-    };
 
+    //react lifecycle untuk menangkap data report yang ada di sidebar
     useEffect(()=>{
-        getReport()
-        
+        reset()
+        getReport() 
+        getHistoryChat(id)
     },[])
 
-    const handleUpload = async () => {
+    //fungsi ambil history chat
 
-        setLoading(true)
-        const formData = new FormData();
+    const getHistoryChat = async (id) =>{
+        try{
+            const response = await axios.get('http://localhost:8080/chat/get/'+id,{
+                headers:{
+                    "Content-Type":"application/json",
+                    "Authorization":token,
+                }
+            });
+            
+             // Ekstrak data dari respons API
+            const chatData = response.data; // Mengakses array "data"
+            
+            // Memisahkan pertanyaan (question) dan jawaban (response)
+            const questions = chatData.map(item => item.question);
+            const answers = chatData.map(item => item.response);
 
-        formData.append("file", file);
-        formData.append("id_user", id_user);
+            // Update state dengan data yang didapat
+            setAIResponse({
+                question: questions,
+                answer: answers,
+            });
+            
+        }catch(error){
+            console.log(error)
 
-
-        try {
-        const res = await axios.post('http://localhost:8080/upload', formData, {
-            headers: {
-            'Content-Type': 'multipart/form-data',
-            "Authorization":token,
-            },
-        });
-        
-        setUploadFileData(res)
-        setModalContent({
-            header: "Upload Success",
-            message: "Success upload file",
-        });
-        if (modalRef.current) {
-            modalRef.current.openModal();
         }
+    }
 
-        console.log(res)
 
-        getReport()
-        setHasUploafFile(true)
-        localStorage.setItem("id_report",res.data.id_report);
-        localStorage.setItem("date",res.data.date);
-        setLoading(false)
-        } catch (error) {
-            console.error('Error uploading file:', error);
-            setModalContent({
-                header:"Upload Failed",
-                message:"Error uploading file",
-            })
-            if (modalRef.current) {
-                modalRef.current.openModal();
-            }
-            setLoading(false)
-        }
-    };
-
+    //untuk melakukan logout
     const Logout = ()=>{
        
         localStorage.clear()
         navigate("/")
     }
 
+    //untuk mendapatkan data report yang ada di sidebar
     const getReport = async ()=>{
         
         try{
@@ -119,6 +120,14 @@ function ChatPage(){
             
             const data = response.data
             setReport(data)
+            data.forEach(element => {
+                if (element.id == id){
+                    console.log( "ini dari foreach:", element.id,id)
+                    localStorage.setItem("date ",element.date)
+                    localStorage.setItem("stringText",element.stringText)
+
+                }
+            });
 
 
         }catch(error){
@@ -126,6 +135,7 @@ function ChatPage(){
         }
     }
 
+    //Untuk melakukan deleteReport yang ada di sidebar
     const deleteReport = async (id)=>{
         try{
             const response = await axios.delete("http://localhost:8080/delete/report/"+id,
@@ -141,6 +151,7 @@ function ChatPage(){
         }
     }
 
+    //Melakukan komunikasi dengan AI
     const aiChat = async ()=>{
         try{
             
@@ -151,7 +162,7 @@ function ChatPage(){
             formData.append("id_report",localStorage.getItem("id_report"));
             formData.append("date",localStorage.getItem("date"));
             formData.append("query",question);
-            formData.append("document", uploadFileData.data.stringText);
+            // formData.append("document", uploadFileData.data.stringText);
 
             setQuestion("")
 
@@ -163,10 +174,7 @@ function ChatPage(){
                     }
                 }
             )
-            console.log(response)
-
             
-
             setAIResponse((prevState) => ({
                 ...prevState, 
                 question: [...prevState.question, response.data.Question], 
@@ -181,8 +189,7 @@ function ChatPage(){
             setIsLoadingChat(false)
         }
     }
-    
-    
+
     return(
         <>
             <Modal ref={modalRef} header={modalContent.header} message={modalContent.message} />
@@ -203,20 +210,17 @@ function ChatPage(){
                         <label htmlFor="my-drawer" aria-label="close sidebar" className="drawer-overlay z-100  "></label>
                         <ul className="menu bg-base-200 overflow-y-auto flex-1 text-base-content min-h-full w-80 p-4">
                             <h1 className='text-2xl  font-bold font-roboto mb-5' >History</h1>
-                            <h1 className='text-xl text-center bg-slate-600 text-white rounded-lg mb-5' onClick={reset} >New Chat</h1>
+                            <h1 className='text-xl text-center cursor-pointer  bg-slate-600 text-white rounded-lg mb-5' onClick={()=>navigate("/chat")} >New Chat</h1>
                             {/* Sidebar content here */}                          
                             
                             {
                                 
                             reports && reports.map(item=>(
                                 <div className='flex w-full justify-between items-center ' key={item.id} >
-                                    {/* <Link
-                                        className={` w-3/4 text-lg mb-2 ${isActive('/Chat') ? 'mb-2 bg-slate-400 text-white rounded-xl p-2' : 'w-3/4 mb-2  text-black rounded-xl p-2'}`}
-                                    >
-                                        {item.date}
-                                    </Link> */}
+                                    
                                     <Link to={"/Chat/"+item.id}
-                                        className='w-3/4 mb-2  text-black rounded-xl p-2'
+                                        onClick={reset}
+                                        className={` w-3/4 text-lg mb-2 ${isActive('/Chat/'+item.id) ? 'mb-2 bg-slate-400 text-white rounded-xl p-2' : 'w-3/4 mb-2  text-black rounded-xl p-2'}`}
                                         
                                     >
                                         {item.date}
@@ -230,28 +234,7 @@ function ChatPage(){
                     </div>
                     
                 </div>
-                
-                <div className='  sm:flex sm:justify-center sm:items-center sm:space-x-2'>
-                    <input 
-                        type="file" 
-                        className="mx-auto block sm:w-3/4 max-w-lg p-3 text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-700 hover:bg-gray-100 transition-all duration-300 ease-in-out
-                        file:mr-4 file:py-2 file:px-4 
-                        file:rounded-full file:border-0 
-                        file:text-sm file:font-semibold 
-                        file:bg-blue-50 file:text-blue-700 
-                        hover:file:bg-blue-100 
-                        sm:m-0" 
-                        onChange={handleFileChange} 
-                    />
-                    <button 
-                        className='block mx-auto p-2 w-3/4 mt-4 sm:w-1/4 sm:mt-0 bg-sky-500 rounded-xl text-white sm:ml-0 sm:px-4' 
-                        onClick={handleUpload}
-                    >
-                        {loading ? <Loader/>:"Upload"}
-                        
-                    </button>
-
-                </div>
+            
             </div>
             
             <div className="chat-container max-h-screen overflow-y-auto">
@@ -271,8 +254,7 @@ function ChatPage(){
                     className="input input-bordered  w-full mb-14 p-4" 
                 />
                 <button >
-                {hasUploadFile === true && (
-                    isLoadingChat? (
+                {isLoadingChat? (
                         <Loader /> 
                     ) : (
                         <Send 
@@ -281,7 +263,6 @@ function ChatPage(){
                             width={40} 
                             height={40} 
                         />
-                    )
                 )}
                     
                 </button>
@@ -290,4 +271,4 @@ function ChatPage(){
     )
 }
 
-export default ChatPage;
+export default ChatHistory;

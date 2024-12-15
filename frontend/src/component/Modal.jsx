@@ -23,7 +23,7 @@ const Modal = forwardRef((props, ref) => {
             <p className="py-4">{props.message}</p>
             <div className="modal-action">
               <form method="dialog">
-                <button className="btn">Close</button>
+                <button className="btn">Ok</button>
               </form>
             </div>
           </div>

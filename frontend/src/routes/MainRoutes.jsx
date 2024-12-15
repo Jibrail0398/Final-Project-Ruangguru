@@ -3,7 +3,7 @@ import RegisterPage from "./RegisterPage";
 import LoginPage from "./LoginPage";
 import ChatPage from "./ChatPage";
 import ProtectedRoute from "./ProtectedRoutes";
-
+import ChatHistory from "./ChatHistory";
 
 function MainRoutes (){
 
@@ -22,7 +22,12 @@ function MainRoutes (){
                         </ProtectedRoute>
                         
                         } ></Route>
-                    <Route></Route>
+                    <Route path=":id" element={
+                        <ProtectedRoute>
+                            <ChatHistory/>
+                        </ProtectedRoute>
+                        
+                        } ></Route>
                 </Route>
             </Routes>
         
