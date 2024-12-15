@@ -37,21 +37,21 @@ function RegisterPage(){
                     "Content-Type":"application/json",
                 }
             });
-            console.log(response)
+            
             setIsloading(false)
             setModalContent({
                 header: "Success",
-                message: `Login Success`,
+                message: `Register Success`,
             });
             if (modalRef.current) {
                 modalRef.current.openModal();
             }
 
         }catch(error){
-            console.log("Error",error)
+            
             setIsloading(false)
             setModalContent({
-                header:"Login Failed",
+                header:"Register Failed",
                 message:error.response.data.message,
             })
             if (modalRef.current) {

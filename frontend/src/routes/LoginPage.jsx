@@ -1,8 +1,9 @@
 import { ReactComponent as MyIcon } from '../assets/visionary.svg';
 import { Link,useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState,useRef } from 'react';
 import axios from "axios";
 import Loader from "../component/Loader"
+import Modal from "../component/Modal"
 
 function LoginPage(){
 
@@ -11,6 +12,12 @@ function LoginPage(){
     const[email,setEmail] = useState("");
     const[password,setPassword] = useState("");
     const[isLoading,setIsLoading] = useState(false)
+
+    const modalRef = useRef();
+    const [modalContent, setModalContent] = useState({
+        header: "",
+        message: "",
+    });
 
     
     const handleLogin = async (e) =>{
@@ -32,18 +39,32 @@ function LoginPage(){
             localStorage.setItem("token",response.data.token)
             localStorage.setItem("email",response.data.email)
             localStorage.setItem("id_user",response.data.id)
-            navigate("/Chat")
             setIsLoading(false)
+            setModalContent({
+                header: "Success",
+                message: `Login Success`,
+            });
+            if (modalRef.current) {
+                modalRef.current.openModal();
+            }
+            navigate("/Chat")
             
         }catch (error) {
-            console.error("Error:",error.response?error.response.data : error.message);
+            console.error("Error nya adalah:",error.response?error.response.data : error.message);
             setIsLoading(false)
+            setModalContent({
+                header:"Error",
+                message:"Login failed",
+            })
+            if (modalRef.current) {
+                modalRef.current.openModal();
+            }
         }
     }
 
     return(
         <>
-            
+            <Modal ref={modalRef} header={modalContent.header} message={modalContent.message} />
             <div className="flex justify-center items-center h-screen " >
 
                 <div className="card bg-base-100 w-full h-full md:w-3/4 md:h-1/2 lg:h-full shadow-xl">
