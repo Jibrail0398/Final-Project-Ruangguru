@@ -60,6 +60,10 @@ func main() {
 	// Set up the router
 	router := mux.NewRouter()
 
+	router.HandleFunc("/",func (w http.ResponseWriter, r *http.Request)  {
+		w.Write([]byte("Jibrail"));
+	});
+
 	//register endpoint
 	router.HandleFunc("/register",apiHandler.RegisterHandler).Methods("POST")
 

@@ -4,7 +4,6 @@ import (
 	"a21hc3NpZ25tZW50/model"
 	"database/sql"
 	"fmt"
-
 	_ "github.com/lib/pq"
 )
 
