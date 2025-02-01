@@ -110,10 +110,10 @@ function ChatPage(){
         localStorage.setItem("date",res.data.date);
         setLoading(false)
         } catch (error) {
-            console.error('Error uploading file:', error);
+            
             setModalContent({
                 header:"Upload Failed",
-                message:"Error uploading file",
+                message:error.response.data.message,
             })
             if (modalRef.current) {
                 modalRef.current.openModal();
@@ -248,7 +248,13 @@ function ChatPage(){
                     
                 </div>
                 
-                <div className='  sm:flex sm:justify-center sm:items-center sm:space-x-2'>
+                
+                <div
+                    ref={chatContainerRef} 
+                    className="chat-container max-h-screen overflow-y-auto"
+                    style={{ maxHeight: "calc(100vh - 150px)", paddingBottom: "80px" }}
+                >
+                    <div className='  sm:flex sm:justify-center sm:items-center sm:space-x-2'>
                     <input 
                         type="file" 
                         className="mx-auto block sm:w-3/4 max-w-lg p-3 text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-700 hover:bg-gray-100 transition-all duration-300 ease-in-out
@@ -269,11 +275,6 @@ function ChatPage(){
                     </button>
 
                 </div>
-                <div
-                    ref={chatContainerRef} // Pasang referensi ke elemen ini
-                    className="chat-container max-h-screen overflow-y-auto"
-                    style={{ maxHeight: "80vh" }} // Atur tinggi maksimal sesuai kebutuhan
-                >
                     {aiResponse.question.map((q, index) => (
                         <React.Fragment key={index}>
                             <ChatEnd message={q} />
@@ -289,7 +290,7 @@ function ChatPage(){
                     type="text" 
                     value={question} 
                     onChange={(e)=>{setQuestion(e.target.value)}}
-                    className="input input-bordered  w-full mb-14 p-4" 
+                    className="input input-bordered h-20 w-full mb-20 pb-10 bg-sky-100" 
                 />
                 <button >
                 {hasUploadFile === true && (
@@ -297,7 +298,7 @@ function ChatPage(){
                         <Loader /> 
                     ) : (
                         <Send 
-                            className='Send mb-10' 
+                            className='Send mb-10 fill-cyan-600' 
                             onClick={aiChat} 
                             width={40} 
                             height={40} 

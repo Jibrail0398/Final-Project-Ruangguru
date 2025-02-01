@@ -255,9 +255,9 @@ function ChatHistory(){
             </div>
             
             <div
-                ref={chatContainerRef} // Pasang referensi ke elemen ini
+                ref={chatContainerRef} 
                 className="chat-container max-h-screen overflow-y-auto"
-                style={{ maxHeight: "80vh" }} // Atur tinggi maksimal sesuai kebutuhan
+                style={{ maxHeight: "calc(100vh - 150px)", paddingBottom: "80px" }}
             >
                 {aiResponse.question.map((q, index) => (
                     <React.Fragment key={index}>
@@ -267,19 +267,20 @@ function ChatHistory(){
                 ))}
             </div>
 
-            <div className="fixed bottom-0 left-0 right-0 w-full p-4 bg-white shadow-lg  flex items-center space-x-2 h-10">
+            <div className="mt-8 fixed bottom-0 left-0 right-0 w-full p-4 bg-white shadow-lg  flex items-center space-x-2 h-10">
                 <input 
                     type="text" 
                     value={question} 
                     onChange={(e)=>{setQuestion(e.target.value)}}
-                    className="input input-bordered  w-full mb-14 p-4" 
+                    className="input input-bordered h-20 w-full mb-20 pb-10  bg-sky-100 " 
                 />
                 <button >
                 {isLoadingChat? (
                         <Loader /> 
                     ) : (
                         <Send 
-                            className='Send mb-10' 
+                            className='Send mb-10 fill-cyan-600 ' 
+                            
                             onClick={aiChat} 
                             width={40} 
                             height={40} 

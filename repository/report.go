@@ -34,7 +34,7 @@ func (u *reportRepository) SaveReport(id_user int, date string, stringText strin
     // Gunakan QueryRow untuk menjalankan query dan menangkap nilai RETURNING
     err := u.db.QueryRow(query, date, stringText, id_user).Scan(&reportID)
     if err != nil {
-        return 0, fmt.Errorf("error saving report for user ID %d: %v", id_user, err)
+        return 0, fmt.Errorf("The month's report has been uploaded previously")
     }
 
     // Kembalikan ID baris yang baru saja ditambahkan

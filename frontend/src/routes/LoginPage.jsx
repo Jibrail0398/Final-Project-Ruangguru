@@ -50,11 +50,11 @@ function LoginPage(){
             navigate("/Chat")
             
         }catch (error) {
-            console.error("Error nya adalah:",error.response?error.response.data : error.message);
+            
             setIsLoading(false)
             setModalContent({
                 header:"Error",
-                message:"Login failed",
+                message:error.response.data.message,
             })
             if (modalRef.current) {
                 modalRef.current.openModal();

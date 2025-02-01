@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "@fortawesome/fontawesome-svg-core": "^6.7.1"
+    "@fortawesome/fontawesome-svg-core": "^6.7.1",
+    "react-markdown": "^9.0.3"
   }
 }
