@@ -28,7 +28,7 @@ func validateDateFormat(dates []string) error {
         // Validasi format tanggal
         _, err := time.Parse("2006-01-02", dateStr)
         if err != nil {
-            return fmt.Errorf("invalid date format: %v", err)
+            return fmt.Errorf("invalid date format:  date format must be YY-MM-DD")
         }
 
         // Pisahkan tahun, bulan, dan hari
@@ -50,7 +50,7 @@ func validateDateFormat(dates []string) error {
 
         // Periksa konsistensi bulan
         if parts[1] != referenceMonth {
-            return fmt.Errorf("inconsistent month: expected %s, found %s", referenceMonth, parts[1])
+            return fmt.Errorf("Inconsistent month")
         }
     }
 
@@ -96,7 +96,7 @@ func (s *FileService) ProcessFile(fileContent string) (map[string][]string , err
     // Temukan indeks kolom Date
     dateColIndex := -1
     for i, header := range headers {
-        if header == "Date" {
+        if header == "Date" || header == "date" {
             dateColIndex = i
             break
         }

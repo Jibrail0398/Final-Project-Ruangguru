@@ -5,7 +5,6 @@ function Loader(){
         <>
             <div className="spinner"></div>
 
-
         </>
     )
 }

@@ -186,7 +186,6 @@ function ChatPage(){
             )
             console.log(response)
 
-            
 
             setAIResponse((prevState) => ({
                 ...prevState, 
